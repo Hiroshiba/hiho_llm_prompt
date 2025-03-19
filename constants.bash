@@ -17,3 +17,8 @@ export REMOTE
 OWNER=$(git remote get-url "$REMOTE" | sed -n 's#.*[:/]\([^/]*\)/[^/]*$#\1#p')
 readonly OWNER
 export OWNER
+
+# リポジトリ名
+REPO=$(basename "$(git rev-parse --show-toplevel)")
+readonly REPO
+export REPO

@@ -8,13 +8,13 @@ output_path="$OUTPUT_ROOT_DIR/introduction.md"
 
 document="# イントロダクション"
 function append_text() {
-  document="${document}$1"
+  document="${document}\n\n$1"
 }
 function append_title() {
-  append_text "\n\n## $1"
+  append_text "## $1"
 }
 function append_codeblock() {
-  append_text "\n\n\`\`\`\n$1\n\`\`\`"
+  append_text "\`\`\`\n$1\n\`\`\`"
 }
 function write_document() {
   # \n を改行に変換
