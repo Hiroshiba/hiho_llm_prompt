@@ -10,13 +10,13 @@ wikipediaページが存在しない場合は何もしないでください。
 ## 最初の要約
 
 ```bash
-bash hiho_リポジトリ情報まとめ/1_summary.bash
+bash 1_summary.bash
 ```
 
 ## ファイルツリーとそれぞれの要約
 
 ```bash
-bash hiho_リポジトリ情報まとめ/2_filetree.bash
+bash 2_filetree.bash
 ```
 
 ```cline

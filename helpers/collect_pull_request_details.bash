@@ -28,7 +28,7 @@ append_codeblock() {
 }
 function write_document() {
   # \n を改行に変換
-  printf "%b" "$document\n" >"$output_path"
+  echo "$document" | awk '{ gsub(/\\n/, "\n"); print }' >"$output_path"
 }
 
 # プルリクエストの情報
