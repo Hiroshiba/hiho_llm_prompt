@@ -44,10 +44,16 @@ def main() -> None:
     if (owner, repo, pr_number) in entries:
         entries.remove((owner, repo, pr_number))
 
+    # プルリクエストの議論
+    doc_builder.append_title("プルリクエストの議論")
+    doc_builder.append_text(get_pull_request_discussions(pr_number))
+
+    # リンクされた Issue や プルリクエスト の情報
     doc_builder.append_title("リンクされた Issue や プルリクエスト")
     for entry_owner, entry_repo, entry_num in entries:
         process_linked(entry_owner, entry_repo, entry_num, doc_builder)
 
+    # その他のURL
     if len(other_urls) > 0:
         doc_builder.append_title("その他のURL")
         for url in other_urls:
@@ -81,7 +87,9 @@ class DocumentBuilder:
 
 
 def run_gh_command(args: list[str]) -> str:
-    result = subprocess.run(["gh"] + args, capture_output=True, text=True)
+    result = subprocess.run(
+        ["gh"] + args, capture_output=True, text=True, encoding="utf-8"
+    )
     return result.stdout.strip()
 
 
@@ -108,6 +116,39 @@ def extract_github_entries(github_urls: list[str]) -> list[tuple[str, str, str]]
 
 def extract_plain_ids(text: str) -> list[str]:
     return re.findall(r"#(\d+)\b", text)
+
+
+def get_pull_request_discussions(pr_number: str) -> str:
+    comments_json = run_gh_command(
+        ["api", f"repos/{OWNER}/{REPO}/pulls/{pr_number}/comments"]
+    )
+    comments = json.loads(comments_json)
+
+    # データの抽出
+    discussions = [
+        {
+            "発言者": comment.get("user", {}).get("login", "Unknown"),
+            "ファイルパス": comment.get("path", "N/A"),
+            "行数": comment.get("position", "N/A"),
+            "コメント": comment.get("body", "").replace("\n", " "),
+        }
+        for comment in comments
+    ]
+
+    # ファイルパスと行数でソート
+    sorted_discussions = sorted(
+        discussions, key=lambda x: (x["ファイルパス"], str(x["行数"]))
+    )
+
+    # 表の作成
+    table_header = "| 発言者 | ファイルパス | 行数 | コメント |\n|---|---|---|---|\n"
+    table_rows = [
+        f"| {item['発言者']} | {item['ファイルパス']} | {item['行数']} | {item['コメント']} |"
+        for item in sorted_discussions
+    ]
+    markdown_table = table_header + "\n".join(table_rows)
+
+    return markdown_table
 
 
 def process_linked(
@@ -142,6 +183,7 @@ def fetch_details(owner: str, repo: str, num: str) -> tuple[dict, str] | None:
         ],
         capture_output=True,
         text=True,
+        encoding="utf-8",
     )
     if pr_result.returncode == 0:
         return json.loads(pr_result.stdout), "PR"
